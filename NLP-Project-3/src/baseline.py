@@ -26,7 +26,6 @@ test=[1,2,3]
 history_bigrams_probability={}
 
 
-''' Opening training books to build the language model '''
 
 trainFile= open("D:\\MEng folders\\NLP\\Project3\\train.txt", encoding="utf8")
 
