@@ -28,7 +28,7 @@ history_bigrams_probability={}
 
 ''' Opening training books to build the language model '''
 
-trainFile= open("D:\\MEng folders\\NLP\\Project3\\train.txt", encoding="utf8")
+trainFile= open("/media/mihir/E6DEBC2BDEBBF243/MEng folders/NLP/Project3/train.txt")
 
 
 
@@ -58,11 +58,11 @@ for line in trainFile:
             tag= seq_tag[current_index]
             if (tag != 'O'):
                 
-                if (word == '.'):
-                    print(sentence)
-                    print(len(sentence))
-                    print(seq_tag)
-                    print(len(seq_tag)) 
+#                 if (word == '.'):
+#                     print(sentence)
+#                     print(len(sentence))
+#                     print(seq_tag)
+#                     print(len(seq_tag)) 
                 tag=tag.split('-')
                 if word in Unigrams: 
                     temp_dict= Unigrams[word]
@@ -85,7 +85,7 @@ for line in trainFile:
 
 print(Unigrams)
 
-testFile= open("D:\\MEng folders\\NLP\\Project3\\test.txt", encoding="utf8")
+testFile= open("/media/mihir/E6DEBC2BDEBBF243/MEng folders/NLP/Project3/test.txt")
 
 
 count=0;
@@ -156,14 +156,14 @@ for line in testFile:
         count=0    
 
 
-# print('LOC')
-# print(results['LOC'])
-# print('PER')
-# print(results['PER'])
-# print('ORG')
-# print(results['ORG'])
-# print('MISC')
-# print(results['MISC'])
+print('LOC')
+print(results['LOC'])
+print('PER')
+print(results['PER'])
+print('ORG')
+print(results['ORG'])
+print('MISC')
+print(results['MISC'])
 
 
 
