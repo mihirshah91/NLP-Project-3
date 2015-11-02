@@ -9,6 +9,7 @@ import re
 import operator
 import random
 
+'''test commit
 
 terminating_characters= {'?','.','!'}
 words= []
