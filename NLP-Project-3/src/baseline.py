@@ -10,7 +10,6 @@ import operator
 import random
 
 
-terminating_characters= {'?','.','!'}
 words= []
 sentence= []
 Bigrams= {}
@@ -27,7 +26,7 @@ history_bigrams_probability={}
 
 
 
-trainFile= open("D:\\MEng folders\\NLP\\Project3\\train.txt", encoding="utf8")
+trainFile= open("/media/mihir/E6DEBC2BDEBBF243/MEng folders/NLP/Project3/train.txt")
 
 
 
@@ -78,7 +77,7 @@ for line in trainFile:
 
 print(Bigrams)
 
-testFile= open("D:\\MEng folders\\NLP\\Project3\\test.txt", encoding="utf8")
+testFile= open("/media/mihir/E6DEBC2BDEBBF243/MEng folders/NLP/Project3/test.txt")
 
 
 count=0;
