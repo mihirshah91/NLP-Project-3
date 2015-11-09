@@ -12,6 +12,9 @@ import random
 
 
 Unigrams= {}
+tagCounts={}
+tagTrigrams={}
+
 
 ''' Opening training file to build the language model '''
 
@@ -31,11 +34,28 @@ for line in trainFile:
         sentence= line.split()
     if(count == 3):
         seq_tag= line.split()
-        prev_word=" "
+        prev_tag1="*"
+        prev_tag2="*"
         current_index=0
           
+          
         for word in sentence:            
+            
             tag= seq_tag[current_index]
+            bigram= prev_tag1+" "+prev_tag2+" "+tag
+            
+            if bigram in tagTrigrams:
+                tagTrigrams[bigram]+=1
+            else:
+                tagTrigrams[bigram]=1
+            prev_tag1=prev_tag2
+            prev_tag2=tag    
+            
+            if tag in tagCounts:
+                tagCounts[tag]+=1
+            else:
+                tagCounts[tag]=1
+            
             if (tag != 'O'):
                 tag=tag.split('-')
                 if word in Unigrams: 
@@ -53,14 +73,22 @@ for line in trainFile:
             
             
             current_index+=1
+        tag='STOP'
+        bigram=prev_tag1+" "+prev_tag2+" "+tag
+        if bigram in tagTrigrams:
+            tagTrigrams[bigram]+=1
+        else:
+            tagTrigrams[bigram]=1    
         count=0    
 
 
 ''' opening the test file for predicting the tags '''
 
 testFile= open("/media/mihir/E6DEBC2BDEBBF243/MEng folders/NLP/Project3/test.txt")
-
-
+print(seq_tag)
+print(Unigrams)
+print(tagCounts)
+print(tagTrigrams)
 count=0;
 results={"PER": "","LOC": "","ORG": "","MISC": "" }
 
