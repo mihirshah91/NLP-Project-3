@@ -216,7 +216,7 @@ def calculateEmissionProb(w,tag):
     sum=temp_dict[tag]/tagCounts[tag]
     return sum
 
-print(startProb)
+#print(startProb)
 '''cal satrt prob'''
 ''' Add one smoothing for start prob'''
 
@@ -226,7 +226,7 @@ startsum+=sum(startProb.values())
 c0tags=startsum/(startsum+numberOfTags)
 startProb.update((x, (y+1)*c0) for x, y in startProb.items())
 
-print(startsum)
+#print(startsum)
 startProb.update((x, (y/startsum)) for x, y in startProb.items())
 
 testFile= open("/media/mihir/E6DEBC2BDEBBF243/MEng folders/NLP/Project3/test.txt")
@@ -276,15 +276,18 @@ def viterbi(sentence):
         if(k==(len(sentence)-1)):
             sequence+=seqtag        
         sequence= sequence+" "+backPointers[(k,seqtag)]
-    print("seq="+sequence)
+   # print("seq="+sequence)
+    return sequence
 #def maxProbability(curr_tag,k,word):
 
     
 
 count=0;
-results={"PER": "","LOC": "","ORG": "","MISC": "" }
+results={"PER": "","LOC": "","ORG": "","MISC": "","O":"" }
 
 
+current_index=-1
+prev_tag=""
 
 for line in testFile:
     line=line.rstrip("\r\n")
@@ -293,12 +296,58 @@ for line in testFile:
         sentence= line.split()
     if(count == 3):
         positions= line.split()
-        current_index=0
+        start_index=current_index
         #print("sentence"+str(sentence))
-        viterbi(sentence)      
-        count=0    
+        sequence=viterbi(sentence)
+
+        count=0
+
+        tag_list=sequence.split()
+        if tag_list:
+            if(tag_list[0] !='O'):
+                #print("tag list="+str(tag_list))
+                #print("tag="+tag_list[0])
+                prev_tag=(tag_list[0].split('-'))[1]
+            else:
+                prev_tag=tag_list[0]
+        else:
+            prev_tag='O'
+        temp_string=""
+        for tag in tag_list:
+            current_index+=1
+            if(tag!='O'):
+                temp_tag=tag.split('-')
+                
+                if(prev_tag != temp_tag[1]):
+                    diff=current_index - start_index
+                    if(diff!=1):
+                        temp_index=current_index-1
+                        temp_string= str(start_index)+ "-"+str(temp_index)
+                    else:
+                        temp_string=str(current_index)
+                    start_index=current_index
+                    results[prev_tag]=results[prev_tag]+" "+temp_string
+            
+            if(tag!='O'):        
+                prev_tag=temp_tag[1]
+            else:
+                prev_tag='O'
+        # for last
+        if (start_index== current_index):
+            temp_string=str(start_index)
+        else:
+            temp_string=str(start_index)+ "-"+str(current_index)
+        results[prev_tag]=results[prev_tag]+" "+temp_string
         # initializtion
 
+print('LOC')
+print(results['LOC'])
+print('PER')
+print(results['PER'])
+print('ORG')
+print(results['ORG'])
+print('MISC')
+print(results['MISC'])
 
 
         
