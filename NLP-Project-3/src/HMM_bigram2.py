@@ -12,13 +12,10 @@ import collections
 
 
 Unigrams= {}
-tagCounts={"O":0,"B-PER":0,"I-PER":0,"B-ORG":0,"I-ORG":0,"B-LOC":0,"I-LOC":0,"B-MISC":0,"I-MISC":0}
+tagCounts={}
 tagBigrams={}
 tagBigramsProbability={}
 unknown=[]
-#global global_counternew
-global_counternew=0
-
 Unigrams['unknown']={}
 vocabulary={}
 totalWords=0.0
@@ -30,11 +27,9 @@ tags={"O","B-PER","I-PER","B-ORG","I-ORG","B-LOC","I-LOC","B-MISC","I-MISC"}
 '''test1234'''
 ''' Opening training file to build the language model '''
 
-trainFile= open("/media/mihir/E6DEBC2BDEBBF243/MEng folders/NLP/Project3/data_sets/training_set_2")
-#trainFile= open("/media/mihir/E6DEBC2BDEBBF243/MEng folders/NLP/Project3/train.txt")
+trainFile= open("/media/mihir/E6DEBC2BDEBBF243/MEng folders/NLP/Project3/train.txt")
 
 def make_probability_table(prev_word,word):
-
     if prev_word in tagBigramsProbability:
         temp_dict=tagBigramsProbability[prev_word]
         if word in temp_dict:
@@ -125,18 +120,6 @@ for line in trainFile:
         count=0    
 
 c0=totalWords/(totalWords+len(vocabulary))
-print("totalwords=")
-print(totalWords)
-print(len(vocabulary))
-
-f = open('/home/mihir/nlpoutput/Unigrams_unsmoothed','w')
-f.write(str(Unigrams))
-f.close()
-
-f = open('/home/mihir/nlpoutput/start_prob_unsmoothed','w')
-f.write(str(startProb))
-f.close()
-
 
 ''' Add one smoothing'''
 
@@ -155,16 +138,14 @@ for word in tagBigramsProbability:
     tagBigramsProbability[word]=temp_dict
 
 
-
-
 #print(len(vocabulary))
 #print(c0)
 #print(totalWords)
 
 ''' opening the test file for predicting the tags '''
 
-testFile= open("/media/mihir/E6DEBC2BDEBBF243/MEng folders/NLP/Project3/data_sets/validation_set_2")
-#testFile= open("/media/mihir/E6DEBC2BDEBBF243/MEng folders/NLP/Project3/test.txt")
+testFile= open("/media/mihir/E6DEBC2BDEBBF243/MEng folders/NLP/Project3/test.txt")
+
 
 f = open('/home/mihir/nlpoutput/Unigrams','w')
 f.write(str(Unigrams))
@@ -195,7 +176,7 @@ results={"PER": "","LOC": "","ORG": "","MISC": "" }
 
 
 '''Viterbi Algorithm'''
-
+tagCountProbability={}
 lambda1=0.5
 lambda2=0.5
 tagCountProbability= {}
@@ -219,16 +200,10 @@ f.close()
 
 def calculateTransitionProb (v,u):
 
-
-    bigram=u +" "+v
-    if bigram in tagBigrams:
-        tempValue=(tagBigrams[bigram]+1)*c0tags
-    else:
-        tempValue=c0tags
-    #temp_dict=tagBigrams[u]
+    temp_dict=tagBigramsProbability[u]
     sum=0.0
     #print("in fun"+u)
-    sum = tempValue/tagCounts[u] + tagCounts[v]/totalWords
+    sum = lambda1*temp_dict[v] + lambda2*tagCountProbability[v]
     #sum=sum+ lambda2*tagCountProbability[v]
     #print("after")
     return sum    
@@ -238,8 +213,6 @@ def calculateEmissionProb(w,tag):
         temp_dict=Unigrams[w]
     else:
         temp_dict=Unigrams['unknown']
-    if tag not in temp_dict:
-        temp_dict[tag]=c0
     sum=temp_dict[tag]/tagCounts[tag]
     return sum
 
@@ -256,20 +229,18 @@ startProb.update((x, (y+1)*c0) for x, y in startProb.items())
 #print(startsum)
 startProb.update((x, (y/startsum)) for x, y in startProb.items())
 
+testFile= open("/media/mihir/E6DEBC2BDEBBF243/MEng folders/NLP/Project3/test.txt")
 
 '''
 Following loop does the work of sequence tagging. It will take one unigram from test and will find it in train
 If found in train, then assign it that label which has the max count in train. If not found in train then ignore it
 
 '''
-
 def viterbi(sentence):
     # initilization step:
 
     #print("inside")
     #print(sentence)
-    global global_counternew
-    
     maxProb=collections.defaultdict()
     backPointers=collections.defaultdict()
     sequence=""
@@ -294,29 +265,18 @@ def viterbi(sentence):
             backPointers[(k,curr_tag)]=state
     #print(maxProb)
             #print(backPointers)
-    for k in range(len(sentence)-1,0,-1):
+    for k in range(len(sentence)-1,1,-1):
         maxValue=0.0
         #print("indwsfddf")
         seqtag=""
         for tag in tags:
             temp=maxProb[(k,tag)]
             if(temp>maxValue):
-                maxValue=temp
                 seqtag=tag
-      
-                
         if(k==(len(sentence)-1)):
             sequence+=seqtag        
-        sequence= backPointers[(k,seqtag)]+ " "+sequence
-    tempprint=""
-    
-    
-    # print("seq="+sequence)
-    # for k in range(0,len(sentence)):
-    #     print global_counternew,
-    #     global_counternew+=1
-    # print
-    #print("pos="+temp_string)
+        sequence= sequence+" "+backPointers[(k,seqtag)]
+   # print("seq="+sequence)
     return sequence
 #def maxProbability(curr_tag,k,word):
 
@@ -327,11 +287,7 @@ results={"PER": "","LOC": "","ORG": "","MISC": "","O":"" }
 
 
 current_index=-1
-start_index=0
-last_index=-1
-flag=0
-
-global_counternew=0
+prev_tag=""
 
 for line in testFile:
     line=line.rstrip("\r\n")
@@ -340,54 +296,40 @@ for line in testFile:
         sentence= line.split()
     if(count == 3):
         positions= line.split()
-        #start_index=current_index
+        start_index=current_index
         #print("sentence"+str(sentence))
-        
         sequence=viterbi(sentence)
 
         count=0
-        
-        if sequence:
-            if(flag==1):
-                start_index=current_index+1
-                last_index=current_index+1
-            flag=1
-
-            tag_list=sequence.split()
-            if (tag_list[0]=='O'):
-                prev_tag=tag_list[0]
+        tag_list=sequence.split()
+        # print logic
+        for key in tag_list:
+            current_entity=key
+                
+            if (start_index != -1):
+                if (current_entity == prev_entity):
+                    last_index=positions[current_index]
+                    
+                else:
+                    temp_string=start_index + "-" + last_index
+                    temp1= results[prev_entity]
+                    temp1= temp1 + " " + temp_string
+                    results[prev_entity]=temp1
+                    
+                    start_index = positions[current_index]
+                    last_index = start_index 
+                        
+                        
             else:
-                prev_tag = (tag_list[0].split('-'))[1]   
-
-
-
-            for tag in tag_list:
-                current_index+=1
-
-                if(tag!='O'):
-                    curr_tag=tag.split('-')[1]
-                else:
-                    curr_tag='O'
-
-                if(prev_tag==curr_tag):
-                    last_index=current_index
-                else:
-                    temp=results[prev_tag]
-                    new_string=str(start_index)+"-"+str(last_index)
-                    temp=temp + " "+ new_string
-                    results[prev_tag]=temp
-                    start_index=current_index
-                    last_index=current_index    
-                prev_tag=curr_tag
+                start_index=positions[current_index]
+                last_index=start_index
             
-            temp=results[curr_tag]
-            new_string=str(start_index)+"-"+str(last_index)
-            if(temp==""):
-                temp=temp+new_string
-            else:
-                temp=temp + " "+ new_string
-            results[curr_tag]=temp
-           
+            
+            prev_entity=current_entity    
+        
+        
+
+
         # initializtion
 
 print('LOC')
@@ -399,21 +341,6 @@ print(results['ORG'])
 print('MISC')
 print(results['MISC'])
 
-f = open('/media/mihir/E6DEBC2BDEBBF243/MEng folders/NLP/Project3/results/results9.csv','w')
-f.write('Type,Prediction\n')
-f.write('LOC,')
-f.write(results['LOC'])
-f.write('\n')
-f.write('PER,')
-f.write(results['PER'])
-f.write('\n')
-f.write('ORG,')
-f.write(results['ORG'])
-f.write('\n')
-f.write('MISC,')
-f.write(results['MISC'])
-
-f.close()
 
         
 
